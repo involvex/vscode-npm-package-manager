@@ -1,3 +1,17 @@
+## [0.0.12](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.11...v0.0.12) (2026-01-17)
+
+
+### Features
+
+* **security:** add license compliance checking and offline mode support ([7c17b56](https://github.com/involvex/vscode-npm-package-manager/commit/7c17b563379766f06f70ee7b9e442d13f3b8811e))
+
+
+### BREAKING CHANGES
+
+* **security:** License checking now requires explicit configuration of allowed/blocked licenses to be active
+
+
+
 ## [0.0.11](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.10...v0.0.11) (2026-01-17)
 
 
