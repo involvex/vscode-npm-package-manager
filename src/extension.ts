@@ -15,10 +15,12 @@ import { DependencyAnalyzer } from "./services/dependency/analyzer";
 import { ConflictDetector } from "./services/dependency/conflicts";
 import { createPackageManager } from "./services/package-manager";
 import { GraphPanel } from "./providers/webview/graph.panel";
+import { LicenseChecker } from "./services/security/license";
 import { SecurityScanner } from "./services/security";
 import { RegistryClient } from "./services/registry";
 import { StatusBarManager } from "./views/statusbar";
 import { UpdateChecker } from "./services/update";
+import { logger } from "./services/logger";
 import * as vscode from "vscode";
 
 let treeProvider: DependenciesTreeProvider;
@@ -35,7 +37,7 @@ let activeProject: Project | undefined;
 export async function activate(
   context: vscode.ExtensionContext,
 ): Promise<void> {
-  console.log("NPM Package Manager extension is now active");
+  logger.log("NPM Package Manager extension is now active");
 
   projectDetector = new ProjectDetector();
   projectWatcher = new ProjectWatcher();
@@ -315,6 +317,44 @@ function registerCommands(context: vscode.ExtensionContext): void {
             }
           },
         );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.checkLicenses",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        const checker = new LicenseChecker(registryClient);
+        const violations = await checker.checkLicenses(project);
+
+        if (violations.length === 0) {
+          vscode.window.showInformationMessage("No license violations found.");
+        } else {
+          const message = `Found ${violations.length} license violations.`;
+          const choice = await vscode.window.showWarningMessage(
+            message,
+            "View Details",
+          );
+          if (choice === "View Details") {
+            const output =
+              vscode.window.createOutputChannel("NPM License Check");
+            output.clear();
+            output.appendLine(`License Violations for ${project.name}:`);
+            violations.forEach(v => {
+              output.appendLine(
+                `- ${v.packageName}: ${v.license} (${v.violationType})`,
+              );
+            });
+            output.show();
+          }
+        }
       },
     ),
   );

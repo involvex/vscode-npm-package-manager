@@ -26,7 +26,7 @@
 
 - [x] Visual Dependency Graph
 
-- [ ] Conflict Detection (Peer Dependencies)
+- [x] Conflict Detection (Peer Dependencies)
 
 ### Update & Security Monitoring
 
@@ -34,7 +34,7 @@
 
 - [x] Security Vulnerability Scanning
 
-- [ ] Deprecation Warnings (Partial - `isDeprecated` exists but needs UI integration)
+- [x] Deprecation Warnings
 
 ### Configuration & Automation
 
@@ -54,10 +54,10 @@
 ### Advanced Features
 
 - [x] Unused Dependency Detection
-- [ ] License Compliance Checks
-- [ ] Offline Mode
+- [x] License Compliance Checks
+- [x] Offline Mode
 - [x] Node Script Detection
-- [ ] Extension Debug setting (Debug This extensionlog to vscode output )
+- [x] Extension Debug setting (Debug This extensionlog to vscode output )
 
 ## 3. Future Expansions
 

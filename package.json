@@ -129,6 +129,12 @@
         "category": "NPM"
       },
       {
+        "command": "npm-pm.checkLicenses",
+        "title": "Check Licenses",
+        "icon": "$(law)",
+        "category": "NPM"
+      },
+      {
         "command": "npm-pm.checkUpdates",
         "title": "Check for Updates",
         "icon": "$(sync)",
@@ -181,6 +187,26 @@
           "type": "boolean",
           "default": true,
           "description": "Show package status in status bar"
+        },
+        "npmPackageManager.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging to Output channel"
+        },
+        "npmPackageManager.allowedLicenses": {
+          "type": "array",
+          "default": [],
+          "description": "List of allowed SPDX license identifiers (empty = all allowed unless blocked)"
+        },
+        "npmPackageManager.blockedLicenses": {
+          "type": "array",
+          "default": [],
+          "description": "List of blocked SPDX license identifiers"
+        },
+        "npmPackageManager.offlineMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable offline mode (disable network requests for package metadata)"
         }
       }
     },
@@ -263,6 +289,11 @@
           "group": "1_actions@2"
         },
         {
+          "command": "npm-pm.checkLicenses",
+          "when": "view == npmDependencies && viewItem =~ /^(category|project)/",
+          "group": "1_actions@2"
+        },
+        {
           "command": "npm-pm.debugScript",
           "when": "view == nodePackageScripts && viewItem == script",
           "group": "inline"
@@ -323,6 +354,10 @@
         },
         {
           "command": "npm-pm.checkConflicts",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.checkLicenses",
           "when": "npmPackageManager.hasProject"
         }
       ]

@@ -1,5 +1,6 @@
 import type { RegistryPackage, SearchResult } from "../../types";
 import { RegistryCache } from "./cache";
+import * as vscode from "vscode";
 
 export interface RegistryClientOptions {
   registryUrl?: string;
@@ -39,12 +40,21 @@ export class RegistryClient {
     this.cache = new RegistryCache(options?.cacheTimeout || 30);
   }
 
+  private isOfflineMode(): boolean {
+    const config = vscode.workspace.getConfiguration("npmPackageManager");
+    return config.get<boolean>("offlineMode", false);
+  }
+
   async getPackage(name: string): Promise<RegistryPackage | null> {
     const cacheKey = `pkg:${name}`;
     const cached = this.cache.get<RegistryPackage>(cacheKey);
 
     if (cached) {
       return cached;
+    }
+
+    if (this.isOfflineMode()) {
+      return null;
     }
 
     try {
@@ -79,6 +89,10 @@ export class RegistryClient {
 
     if (cached) {
       return cached;
+    }
+
+    if (this.isOfflineMode()) {
+      return [];
     }
 
     try {
