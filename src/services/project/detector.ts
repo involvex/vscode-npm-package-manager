@@ -82,6 +82,9 @@ export class ProjectDetector {
     if (fs.existsSync(path.join(projectPath, "bun.lockb"))) {
       return "bun";
     }
+    if (fs.existsSync(path.join(projectPath, "bun.lock"))) {
+      return "bun";
+    }
     if (fs.existsSync(path.join(projectPath, "pnpm-lock.yaml"))) {
       return "pnpm";
     }
@@ -106,17 +109,27 @@ export class ProjectDetector {
     projectPath: string,
     packageManager: PackageManagerType,
   ): string | undefined {
-    const lockfiles: Record<PackageManagerType, string> = {
-      bun: "bun.lockb",
+    if (packageManager === "bun") {
+      if (fs.existsSync(path.join(projectPath, "bun.lockb"))) {
+        return path.join(projectPath, "bun.lockb");
+      }
+      if (fs.existsSync(path.join(projectPath, "bun.lock"))) {
+        return path.join(projectPath, "bun.lock");
+      }
+    }
+
+    const lockfiles: Record<string, string> = {
       pnpm: "pnpm-lock.yaml",
       yarn: "yarn.lock",
       npm: "package-lock.json",
     };
 
     const lockfile = lockfiles[packageManager];
-    const lockfilePath = path.join(projectPath, lockfile);
-
-    return fs.existsSync(lockfilePath) ? lockfilePath : undefined;
+    if (lockfile) {
+      const lockfilePath = path.join(projectPath, lockfile);
+      return fs.existsSync(lockfilePath) ? lockfilePath : undefined;
+    }
+    return undefined;
   }
 
   private generateProjectId(projectPath: string): string {

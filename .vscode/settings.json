@@ -80,5 +80,8 @@
   },
   "statusbarQuickActions.settings.theme": {
     "darkTheme": true
-  }
+  },
+  "npmPackageManager.defaultPackageManager": "bun",
+  "npmPackageManager.debug": true,
+  "npmPackageManager.showStatusBarItem": true
 }

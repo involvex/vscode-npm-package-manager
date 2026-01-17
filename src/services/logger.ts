@@ -21,6 +21,10 @@ export class Logger {
     this.isDebugMode = vscode.workspace
       .getConfiguration("npmPackageManager")
       .get("debug", false);
+
+    if (this.isDebugMode) {
+      this.log("Debug logging enabled");
+    }
   }
 
   log(message: string, ...args: any[]): void {
