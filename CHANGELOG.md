@@ -1,3 +1,9 @@
+## [0.0.6](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.5...v0.0.6) (2026-01-17)
+
+### Features
+
+- add changelog generation script ([d4be655](https://github.com/involvex/vscode-npm-package-manager/commit/d4be65593cc5db561cb1e60c3e82533514bfdf0b))
+
 ## [0.0.5](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.4...v0.0.5) (2026-01-17)
 
 ### Features
