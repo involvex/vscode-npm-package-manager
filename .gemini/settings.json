@@ -1,5 +1,42 @@
 {
   "context": {
-    "fileName": ["README.md","GEMINI.md"]
+    "fileName": [
+      "README.md"
+    ],
+    "loadMemoryFromIncludeDirectories": true
+  },
+  "security": {
+    "enablePermanentToolApproval": true
+  },
+  "tools": {
+    "shell": {
+      "showColor": true,
+      "enableInteractiveShell": false
+    }
+  },
+  "ui": {
+    "showModelInfoInChat": true,
+    "showMemoryUsage": true,
+    "footer": {
+      "hideContextPercentage": false,
+      "hideSandboxStatus": true
+    },
+    "showStatusInTitle": true
+  },
+  "general": {
+    "sessionRetention": {
+      "enabled": true
+    },
+    "previewFeatures": true,
+    "enablePromptCompletion": true
+  },
+  "experimental": {
+    "introspectionAgentSettings": {
+      "enabled": true
+    },
+    "skills": true
+  },
+  "ide": {
+    "enabled": true
   }
 }
