@@ -33,7 +33,7 @@
       "text": "👄 Check",
       "command": {
         "type": "bun",
-        "script": "check",
+        "script": "check"
       },
       "alignment": "left",
       "enabled": true,
