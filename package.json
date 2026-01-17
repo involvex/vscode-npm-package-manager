@@ -1,0 +1,314 @@
+{
+  "name": "vscode-npm-package-manager",
+  "displayName": "NPM Package Manager",
+  "version": "0.0.1",
+  "description": "Advanced Node.js package management with support for npm, yarn, pnpm, and bun",
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "npm",
+    "yarn",
+    "pnpm",
+    "bun",
+    "package manager",
+    "dependencies",
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/involvex/vscode-npm-package-manager"
+  },
+  "funding": {
+    "type": "url",
+    "url": "https://paypal.me/involvex"
+  },
+  "author": {
+    "name": "involvex"
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "check": "bun run format && bun run lint:fix && bun run typecheck",
+    "compile": "bun run check && node esbuild.js",
+    "compile-tests": "tsc -p . --outDir out",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "package": "bun run check && bun run esbuild.js --production && vsce pack -o dist",
+    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "test": "vscode-test",
+    "typecheck": "tsc --noEmit",
+    "vscode:prepublish": "bun run package",
+    "watch": "npm-run-all -p watch:*",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "watch:esbuild": "bun run esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "clean": "rimraf dist .cache out dist"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "npm-pm.refresh",
+        "title": "Refresh Dependencies",
+        "icon": "$(refresh)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.install",
+        "title": "Install Package",
+        "icon": "$(add)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.uninstall",
+        "title": "Uninstall Package",
+        "icon": "$(trash)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.update",
+        "title": "Update Package",
+        "icon": "$(arrow-up)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.updateAll",
+        "title": "Update All Packages",
+        "icon": "$(cloud-download)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.moveToDeps",
+        "title": "Move to Dependencies",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.moveToDevDeps",
+        "title": "Move to Dev Dependencies",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.openOnNpm",
+        "title": "Open on npmjs.com",
+        "icon": "$(link-external)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.search",
+        "title": "Search Packages",
+        "icon": "$(search)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.audit",
+        "title": "Security Audit",
+        "icon": "$(shield)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.checkUpdates",
+        "title": "Check for Updates",
+        "icon": "$(sync)",
+        "category": "NPM"
+      }
+    ],
+    "configuration": {
+      "title": "NPM Package Manager",
+      "properties": {
+        "npmPackageManager.defaultPackageManager": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "npm",
+            "yarn",
+            "pnpm",
+            "bun"
+          ],
+          "default": "auto",
+          "description": "Default package manager to use. 'auto' will detect based on lockfile."
+        },
+        "npmPackageManager.updateCheckInterval": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "description": "Minutes between automatic update checks (0 to disable)"
+        },
+        "npmPackageManager.showUpdateNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications when package updates are available"
+        },
+        "npmPackageManager.showSecurityNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications for security vulnerabilities"
+        },
+        "npmPackageManager.showStatusBarItem": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show package status in status bar"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "npm-pm.install",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n",
+        "when": "npmPackageManager.hasProject"
+      },
+      {
+        "command": "npm-pm.refresh",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "view == npmDependencies"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "npm-pm.refresh",
+          "when": "view == npmDependencies",
+          "group": "navigation"
+        },
+        {
+          "command": "npm-pm.install",
+          "when": "view == npmDependencies",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "npm-pm.update",
+          "when": "view == npmDependencies && viewItem =~ /package.*updatable/",
+          "group": "inline"
+        },
+        {
+          "command": "npm-pm.uninstall",
+          "when": "view == npmDependencies && viewItem =~ /^package/",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "npm-pm.update",
+          "when": "view == npmDependencies && viewItem =~ /package.*updatable/",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "npm-pm.openOnNpm",
+          "when": "view == npmDependencies && viewItem =~ /^package/",
+          "group": "1_actions@3"
+        },
+        {
+          "command": "npm-pm.moveToDeps",
+          "when": "view == npmDependencies && viewItem =~ /package.*dev/",
+          "group": "2_move@1"
+        },
+        {
+          "command": "npm-pm.moveToDevDeps",
+          "when": "view == npmDependencies && viewItem =~ /package.*prod/",
+          "group": "2_move@2"
+        },
+        {
+          "command": "npm-pm.updateAll",
+          "when": "view == npmDependencies && viewItem =~ /^(category|project)/",
+          "group": "1_actions@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "npm-pm.install",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.uninstall",
+          "when": "false"
+        },
+        {
+          "command": "npm-pm.update",
+          "when": "false"
+        },
+        {
+          "command": "npm-pm.updateAll",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.moveToDeps",
+          "when": "false"
+        },
+        {
+          "command": "npm-pm.moveToDevDeps",
+          "when": "false"
+        },
+        {
+          "command": "npm-pm.openOnNpm",
+          "when": "false"
+        },
+        {
+          "command": "npm-pm.refresh",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.search",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.audit",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.checkUpdates",
+          "when": "npmPackageManager.hasProject"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "npmDependencies",
+          "name": "Dependencies",
+          "when": "npmPackageManager.hasProject",
+          "icon": "$(package)",
+          "contextualTitle": "NPM Dependencies"
+        }
+      ]
+    }
+  },
+  "activationEvents": [
+    "workspaceContains:**/package.json"
+  ],
+  "devDependencies": {
+    "@eslint/css": "^0.14.1",
+    "@eslint/js": "^9.39.2",
+    "@eslint/json": "^0.14.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.108.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.1",
+    "eslint": "^9.39.2",
+    "globals": "^17.0.0",
+    "jiti": "^2.6.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.8.0",
+    "prettier-plugin-multiline-arrays": "^4.1.3",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-packagejson": "^2.5.21",
+    "prettier-plugin-sort-imports": "^1.8.9",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.0"
+  },
+  "engines": {
+    "vscode": "^1.108.1"
+  },
+  "galleryBanner": {
+    "color": "#1e2024",
+    "theme": "dark"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/involvex"
+  }
+}
