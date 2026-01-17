@@ -1,7 +1,7 @@
 {
   "name": "vscode-npm-package-manager",
-  "displayName": "NPM Package Manager",
-  "version": "0.0.1",
+  "displayName": "Node Package Manager",
+  "version": "0.0.2",
   "description": "Advanced Node.js package management with support for npm, yarn, pnpm, and bun",
   "categories": [
     "Other",
@@ -16,6 +16,7 @@
     "dependencies",
     "node"
   ],
+  "homepage": "https://github.com/involvex/vscode-npm-package-manager",
   "repository": {
     "type": "git",
     "url": "https://github.com/involvex/vscode-npm-package-manager"
@@ -27,25 +28,26 @@
   "author": {
     "name": "involvex"
   },
+  "publisher": "involvex",
   "main": "./dist/extension.js",
   "scripts": {
     "check": "bun run format && bun run lint:fix && bun run typecheck",
-    "compile": "bun run check && node esbuild.js",
+    "clean": "rimraf dist .cache out dist",
+    "compile": " node esbuild.js",
     "compile-tests": "tsc -p . --outDir out",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "package": "bun run check && bun run esbuild.js --production && vsce pack -o dist",
+    "package": "bun run esbuild.js --production && vsce pack -o dist",
     "pretest": "bun run compile-tests && bun run compile && bun run lint",
     "test": "vscode-test",
     "typecheck": "tsc --noEmit",
-    "vscode:prepublish": "bun run package",
+    "vscode:prepublish": "bun run check && bun run compile",
     "watch": "npm-run-all -p watch:*",
     "watch-tests": "tsc -p . -w --outDir out",
     "watch:esbuild": "bun run esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "clean": "rimraf dist .cache out dist"
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json"
   },
   "contributes": {
     "commands": [
@@ -304,6 +306,7 @@
   "engines": {
     "vscode": "^1.108.1"
   },
+  "icon": "assets/icon.PNG",
   "galleryBanner": {
     "color": "#1e2024",
     "theme": "dark"
