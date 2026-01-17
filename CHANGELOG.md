@@ -1,3 +1,17 @@
+## [0.0.11](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.10...v0.0.11) (2026-01-17)
+
+
+### Features
+
+* add conflict detection and version selection for package installation ([dcb5d40](https://github.com/involvex/vscode-npm-package-manager/commit/dcb5d405beeab86055c266be80b18d2ff8ffc664))
+
+
+### BREAKING CHANGES
+
+* Package installation now requires explicit version selection when no version is specified in the package name
+
+
+
 ## [0.0.10](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.9...v0.0.10) (2026-01-17)
 
 
