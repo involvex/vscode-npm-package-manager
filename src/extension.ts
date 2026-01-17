@@ -29,6 +29,7 @@ let updateChecker: UpdateChecker;
 let securityScanner: SecurityScanner;
 let statusBarManager: StatusBarManager;
 let updateCheckInterval: NodeJS.Timeout | undefined;
+let activeProject: Project | undefined;
 
 export async function activate(
   context: vscode.ExtensionContext,
@@ -67,7 +68,11 @@ export async function activate(
       await loadProjectPackages(project);
       treeProvider.updateProject(project);
       scriptsProvider.updateProject(project);
-      statusBarManager.update(treeProvider.getAllProjects());
+
+      if (activeProject && activeProject.id === project.id) {
+        activeProject = project;
+      }
+      statusBarManager.update(treeProvider.getAllProjects(), activeProject);
     }
   });
 
@@ -85,7 +90,7 @@ export async function activate(
   vscode.workspace.onDidChangeConfiguration(e => {
     if (e.affectsConfiguration("npmPackageManager")) {
       setupUpdateCheckInterval();
-      statusBarManager.update(treeProvider.getAllProjects());
+      statusBarManager.update(treeProvider.getAllProjects(), activeProject);
     }
   });
 
@@ -126,7 +131,20 @@ async function initializeProjects(): Promise<void> {
 
   treeProvider.setProjects(projects);
   scriptsProvider.setProjects(projects);
-  statusBarManager.update(projects);
+
+  if (projects.length > 0 && !activeProject) {
+    activeProject = projects[0];
+  } else if (projects.length > 0 && activeProject) {
+    // Re-link active project
+    activeProject =
+      projects.find(p => p.id === activeProject!.id) || projects[0];
+  } else {
+    activeProject = undefined;
+  }
+
+  treeProvider.setActiveProject(activeProject);
+  scriptsProvider.setActiveProject(activeProject);
+  statusBarManager.update(projects, activeProject);
 
   vscode.commands.executeCommand(
     "setContext",
@@ -165,7 +183,12 @@ async function checkForUpdates(): Promise<void> {
     }
   }
 
-  statusBarManager.update(projects);
+  if (activeProject) {
+    activeProject =
+      projects.find(p => p.id === activeProject!.id) || activeProject;
+  }
+
+  statusBarManager.update(projects, activeProject);
   showUpdateNotificationIfNeeded(projects);
 }
 
@@ -233,7 +256,7 @@ async function runSecurityAudit(project: Project): Promise<void> {
 
   project.hasSecurityIssues = results.length > 0;
   treeProvider.updateProject(project);
-  statusBarManager.update(treeProvider.getAllProjects());
+  statusBarManager.update(treeProvider.getAllProjects(), activeProject);
 }
 
 function registerCommands(context: vscode.ExtensionContext): void {
@@ -242,6 +265,74 @@ function registerCommands(context: vscode.ExtensionContext): void {
       await initializeProjects();
       vscode.window.showInformationMessage("Dependencies refreshed");
     }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("npm-pm.selectProject", async () => {
+      const projects = treeProvider.getAllProjects();
+      if (projects.length <= 1) {
+        return;
+      }
+
+      const items = projects.map(p => ({
+        label: p.name,
+        description: p.packageManager,
+        project: p,
+      }));
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: "Select active project",
+      });
+
+      if (selected) {
+        activeProject = selected.project;
+        treeProvider.setActiveProject(activeProject);
+        scriptsProvider.setActiveProject(activeProject);
+        statusBarManager.update(projects, activeProject);
+      }
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.debugScript",
+      async (item?: ScriptItem) => {
+        if (!item || !(item instanceof ScriptItem)) {
+          vscode.window.showErrorMessage("Please select a script to debug");
+          return;
+        }
+
+        // Configuration for standard Node.js debugging via npm/yarn/pnpm
+        const debugConfig: vscode.DebugConfiguration = {
+          type: "node",
+          request: "launch",
+          name: `Debug ${item.name}`,
+          cwd: item.project.path,
+          runtimeExecutable: "npm",
+          runtimeArgs: ["run", item.name],
+          skipFiles: ["<node_internals>/**"],
+        };
+
+        if (item.project.packageManager === "yarn") {
+          debugConfig.runtimeExecutable = "yarn";
+          debugConfig.runtimeArgs = ["run", item.name];
+        } else if (item.project.packageManager === "pnpm") {
+          debugConfig.runtimeExecutable = "pnpm";
+          debugConfig.runtimeArgs = ["run", item.name];
+        } else if (item.project.packageManager === "bun") {
+          // Bun debugging is experimental/requires extension, but basic node launch might work for some.
+          // Best effort: try 'bun' type if available, else fallback or use runtimeExecutable 'bun'.
+          // VS Code generic debugger doesn't support 'bun' runtimeExecutable with type 'node' fully for attaching?
+          // Actually, we can use pwa-node with runtimeExecutable bun?
+          debugConfig.runtimeExecutable = "bun";
+          debugConfig.runtimeArgs = ["run", item.name];
+          // If the user has the Bun extension, type 'bun' is better.
+          // debugConfig.type = 'bun';
+        }
+
+        await vscode.debug.startDebugging(undefined, debugConfig);
+      },
+    ),
   );
 
   context.subscriptions.push(

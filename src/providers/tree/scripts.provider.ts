@@ -13,9 +13,15 @@ export class ScriptsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private projects: Map<string, Project> = new Map();
+  private activeProject: Project | undefined;
 
   refresh(item?: TreeItem): void {
     this._onDidChangeTreeData.fire(item);
+  }
+
+  setActiveProject(project: Project | undefined): void {
+    this.activeProject = project;
+    this.refresh();
   }
 
   setProjects(projects: Project[]): void {
@@ -28,6 +34,9 @@ export class ScriptsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
 
   updateProject(project: Project): void {
     this.projects.set(project.id, project);
+    if (this.activeProject?.id === project.id) {
+      this.activeProject = project;
+    }
     this.refresh();
   }
 
@@ -48,6 +57,10 @@ export class ScriptsTreeProvider implements vscode.TreeDataProvider<TreeItem> {
   }
 
   private async getRootItems(): Promise<TreeItem[]> {
+    if (this.activeProject) {
+      return await this.getScriptItems(this.activeProject);
+    }
+
     const projectList = Array.from(this.projects.values());
 
     if (projectList.length === 0) {

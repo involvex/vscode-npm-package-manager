@@ -127,6 +127,17 @@
         "title": "Check for Updates",
         "icon": "$(sync)",
         "category": "NPM"
+      },
+      {
+        "command": "npm-pm.selectProject",
+        "title": "Select Active Project",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.debugScript",
+        "title": "Debug Script",
+        "icon": "$(debug-alt)",
+        "category": "NPM"
       }
     ],
     "configuration": {
@@ -239,6 +250,11 @@
           "command": "npm-pm.findUnused",
           "when": "view == npmDependencies && viewItem =~ /^(category|project)/",
           "group": "1_actions@2"
+        },
+        {
+          "command": "npm-pm.debugScript",
+          "when": "view == nodePackageScripts && viewItem == script",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -299,18 +315,18 @@
     "views": {
       "explorer": [
         {
-          "id": "npmDependencies",
-          "name": "Dependency Manager & Scripts",
-          "when": "npmPackageManager.hasProject",
-          "icon": "$(package)",
-          "contextualTitle": "NPM Dependencies"
-        },
-        {
           "id": "nodePackageScripts",
           "name": "Scripts",
           "when": "npmPackageManager.hasProject",
           "icon": "$(play-circle)",
           "contextualTitle": "NPM Scripts"
+        },
+        {
+          "id": "npmDependencies",
+          "name": "Dependency Manager & Scripts",
+          "when": "npmPackageManager.hasProject",
+          "icon": "$(package)",
+          "contextualTitle": "NPM Dependencies"
         }
       ]
     }

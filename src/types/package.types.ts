@@ -20,6 +20,7 @@ export interface PackageJson {
   peerDependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
   scripts?: Record<string, string>;
+  packageManager?: string;
 }
 
 export interface InstalledPackage {

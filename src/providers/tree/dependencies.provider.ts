@@ -11,9 +11,15 @@ export class DependenciesTreeProvider implements vscode.TreeDataProvider<TreeIte
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private projects: Map<string, Project> = new Map();
+  private activeProject: Project | undefined;
 
   refresh(item?: TreeItem): void {
     this._onDidChangeTreeData.fire(item);
+  }
+
+  setActiveProject(project: Project | undefined): void {
+    this.activeProject = project;
+    this.refresh();
   }
 
   setProjects(projects: Project[]): void {
@@ -26,6 +32,9 @@ export class DependenciesTreeProvider implements vscode.TreeDataProvider<TreeIte
 
   updateProject(project: Project): void {
     this.projects.set(project.id, project);
+    if (this.activeProject?.id === project.id) {
+      this.activeProject = project;
+    }
     this.refresh();
   }
 
@@ -50,6 +59,10 @@ export class DependenciesTreeProvider implements vscode.TreeDataProvider<TreeIte
   }
 
   private getRootItems(): TreeItem[] {
+    if (this.activeProject) {
+      return this.getCategoryItems(this.activeProject);
+    }
+
     const projectList = Array.from(this.projects.values());
 
     if (projectList.length === 0) {

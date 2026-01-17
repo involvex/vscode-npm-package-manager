@@ -37,7 +37,10 @@ export class ProjectDetector {
       const packageJson: PackageJson = JSON.parse(content);
       const projectPath = path.dirname(packageJsonPath);
 
-      const packageManager = this.detectPackageManager(projectPath);
+      const packageManager = this.detectPackageManager(
+        projectPath,
+        packageJson,
+      );
       const lockfilePath = this.findLockfile(projectPath, packageManager);
 
       return {
@@ -57,7 +60,25 @@ export class ProjectDetector {
     }
   }
 
-  detectPackageManager(projectPath: string): PackageManagerType {
+  detectPackageManager(
+    projectPath: string,
+    packageJson?: PackageJson,
+  ): PackageManagerType {
+    if (packageJson?.packageManager) {
+      if (packageJson.packageManager.startsWith("bun")) {
+        return "bun";
+      }
+      if (packageJson.packageManager.startsWith("pnpm")) {
+        return "pnpm";
+      }
+      if (packageJson.packageManager.startsWith("yarn")) {
+        return "yarn";
+      }
+      if (packageJson.packageManager.startsWith("npm")) {
+        return "npm";
+      }
+    }
+
     if (fs.existsSync(path.join(projectPath, "bun.lockb"))) {
       return "bun";
     }
