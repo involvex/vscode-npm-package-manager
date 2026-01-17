@@ -68,6 +68,12 @@ export class BunPackageManager extends BasePackageManager {
     return this.parseDependencyTree(result.stdout);
   }
 
+  async auditFix(): Promise<ProcessResult> {
+    throw new Error(
+      "Bun does not support 'audit fix'. Please use 'bun pm trust' or update packages manually.",
+    );
+  }
+
   private parseDependencyTree(output: string): DependencyGraph {
     const lines = output.split("\n");
     if (lines.length === 0) {

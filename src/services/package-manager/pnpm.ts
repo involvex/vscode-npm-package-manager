@@ -98,6 +98,10 @@ export class PnpmPackageManager extends BasePackageManager {
     }
   }
 
+  async auditFix(): Promise<ProcessResult> {
+    return this.execute("pnpm", ["audit", "--fix"]);
+  }
+
   private convertPnpmTree(data: any): DependencyGraph {
     return {
       name: data.name || "root",

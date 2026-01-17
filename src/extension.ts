@@ -9,6 +9,8 @@ import {
   ScriptsTreeProvider,
 } from "./providers/tree";
 import type { Project, DependencyType, InstalledPackage } from "./types";
+import { AnalyticsAggregator } from "./services/analytics/aggregator";
+import { DashboardPanel } from "./providers/webview/dashboard.panel";
 import { DependencyGraphService } from "./services/dependency/graph";
 import { ProjectDetector, ProjectWatcher } from "./services/project";
 import { DependencyAnalyzer } from "./services/dependency/analyzer";
@@ -265,6 +267,38 @@ async function runSecurityAudit(project: Project): Promise<void> {
 function registerCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand(
+      "npm-pm.openDashboard",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Generating analytics dashboard...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const aggregator = new AnalyticsAggregator(registryClient);
+              const data = await aggregator.aggregate(project);
+              DashboardPanel.createOrShow(context.extensionUri, data);
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                "Failed to generate dashboard: " + error.message,
+              );
+            }
+          },
+        );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
       "npm-pm.checkConflicts",
       async (item?: ProjectItem | CategoryItem | PackageItem) => {
         const project = getProjectFromItem(item);
@@ -479,6 +513,58 @@ function registerCommands(context: vscode.ExtensionContext): void {
             `Found ${summary.total} vulnerabilities (${summary.critical} critical, ${summary.high} high)`,
           );
         }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.auditFix",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        if (project.packageManager === "bun") {
+          vscode.window.showErrorMessage(
+            "Bun does not currently support automatic vulnerability fixing via 'audit fix'.",
+          );
+          return;
+        }
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Fixing security vulnerabilities...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const result = await pm.auditFix();
+
+              if (result.exitCode !== 0) {
+                vscode.window.showErrorMessage(
+                  `Audit fix failed: ${result.stderr}`,
+                );
+              } else {
+                vscode.window.showInformationMessage(
+                  "Security vulnerabilities fixed successfully.",
+                );
+                await initializeProjects();
+              }
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                `Failed to fix vulnerabilities: ${error.message}`,
+              );
+            }
+          },
+        );
       },
     ),
   );

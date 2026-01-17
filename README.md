@@ -63,13 +63,17 @@ Advanced Node.js package management for Visual Studio Code with support for npm,
 The extension adds a "Dependency Manager & Scripts" view container to the Explorer sidebar.
 
 #### Node Package Manager
+
 Manage your dependencies:
+
 - View all installed packages grouped by type.
 - Identify updates (green arrow) and vulnerabilities (warning icon).
 - Context menu actions to update, uninstall, move, or view on npmjs.com.
 
 #### Scripts
+
 View and run scripts defined in your `package.json`:
+
 - Click the play button to run a script in the integrated terminal.
 - Right-click to debug a script.
 
@@ -103,17 +107,17 @@ All operations are available through the Command Palette (`Ctrl+Shift+P`):
 
 ### Extension Settings
 
-| Setting                                       | Description                                             | Default |
-| --------------------------------------------- | ------------------------------------------------------- | ------- |
-| `npmPackageManager.defaultPackageManager`     | Package manager to use (auto, npm, yarn, pnpm, bun)     | `auto`  |
-| `npmPackageManager.updateCheckInterval`       | Minutes between automatic update checks (0 to disable)  | `60`    |
-| `npmPackageManager.showUpdateNotifications`   | Show notifications when package updates are available   | `true`  |
-| `npmPackageManager.showSecurityNotifications` | Show notifications for security vulnerabilities         | `true`  |
-| `npmPackageManager.showStatusBarItem`         | Show package status in status bar                       | `true`  |
-| `npmPackageManager.offlineMode`               | Enable offline mode (disable network requests)          | `false` |
-| `npmPackageManager.debug`                     | Enable debug logging to Output channel                  | `false` |
-| `npmPackageManager.allowedLicenses`           | List of allowed SPDX license identifiers                | `[]`    |
-| `npmPackageManager.blockedLicenses`           | List of blocked SPDX license identifiers                | `[]`    |
+| Setting                                       | Description                                            | Default |
+| --------------------------------------------- | ------------------------------------------------------ | ------- |
+| `npmPackageManager.defaultPackageManager`     | Package manager to use (auto, npm, yarn, pnpm, bun)    | `auto`  |
+| `npmPackageManager.updateCheckInterval`       | Minutes between automatic update checks (0 to disable) | `60`    |
+| `npmPackageManager.showUpdateNotifications`   | Show notifications when package updates are available  | `true`  |
+| `npmPackageManager.showSecurityNotifications` | Show notifications for security vulnerabilities        | `true`  |
+| `npmPackageManager.showStatusBarItem`         | Show package status in status bar                      | `true`  |
+| `npmPackageManager.offlineMode`               | Enable offline mode (disable network requests)         | `false` |
+| `npmPackageManager.debug`                     | Enable debug logging to Output channel                 | `false` |
+| `npmPackageManager.allowedLicenses`           | List of allowed SPDX license identifiers               | `[]`    |
+| `npmPackageManager.blockedLicenses`           | List of blocked SPDX license identifiers               | `[]`    |
 
 ### Project-specific Settings
 

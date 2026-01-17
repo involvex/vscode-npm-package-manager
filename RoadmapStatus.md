@@ -66,8 +66,8 @@
 - [ ] AI-Powered Recommendations
 - [ ] Collaborative Features
 - [ ] Performance Optimization (Lazy loading implemented in TreeViews)
-- [ ] Dependency Analytics Dashboard
-- [ ] Auto-fix for Vulnerabilities
+- [x] Dependency Analytics Dashboard
+- [x] Auto-fix for Vulnerabilities
 
 ### Community
 

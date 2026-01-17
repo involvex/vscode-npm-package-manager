@@ -111,9 +111,21 @@
         "category": "NPM"
       },
       {
+        "command": "npm-pm.auditFix",
+        "title": "Fix Vulnerabilities",
+        "icon": "$(tools)",
+        "category": "NPM"
+      },
+      {
         "command": "npm-pm.graph",
         "title": "View Dependency Graph",
         "icon": "$(graph)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.openDashboard",
+        "title": "Open Analytics Dashboard",
+        "icon": "$(dashboard)",
         "category": "NPM"
       },
       {
@@ -240,6 +252,11 @@
           "command": "npm-pm.graph",
           "when": "view == npmDependencies",
           "group": "navigation"
+        },
+        {
+          "command": "npm-pm.openDashboard",
+          "when": "view == npmDependencies",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -341,11 +358,19 @@
           "when": "npmPackageManager.hasProject"
         },
         {
+          "command": "npm-pm.auditFix",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
           "command": "npm-pm.checkUpdates",
           "when": "npmPackageManager.hasProject"
         },
         {
           "command": "npm-pm.graph",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.openDashboard",
           "when": "npmPackageManager.hasProject"
         },
         {

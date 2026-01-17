@@ -33,6 +33,7 @@ export abstract class BasePackageManager {
   abstract update(packages?: string[]): Promise<ProcessResult>;
   abstract outdated(): Promise<OutdatedPackage[]>;
   abstract getDependencyTree(): Promise<DependencyGraph>;
+  abstract auditFix(): Promise<ProcessResult>;
 
   async list(): Promise<InstalledPackage[]> {
     const packageJsonPath = path.join(this.projectPath, "package.json");

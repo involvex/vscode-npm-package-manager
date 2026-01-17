@@ -77,6 +77,7 @@ export class NpmPackageManager extends BasePackageManager {
   async getDependencyTree(): Promise<DependencyGraph> {
     try {
       // npm ls can fail if there are unmet peer deps, but still outputs JSON
+
       const result = await this.execute("npm", ["ls", "--all", "--json"]);
 
       if (!result.stdout) {
@@ -84,10 +85,15 @@ export class NpmPackageManager extends BasePackageManager {
       }
 
       const data = JSON.parse(result.stdout);
+
       return this.convertNpmTree(data);
     } catch (e) {
       return { name: "root", version: "0.0.0", dependencies: [] };
     }
+  }
+
+  async auditFix(): Promise<ProcessResult> {
+    return this.execute("npm", ["audit", "fix"]);
   }
 
   private convertNpmTree(data: any): DependencyGraph {

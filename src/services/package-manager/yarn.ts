@@ -90,15 +90,20 @@ export class YarnPackageManager extends BasePackageManager {
       }
 
       // Yarn outputs multiple JSON lines. the tree is usually the last one?
+
       // Or one of them has type: 'tree'.
+
       const lines = result.stdout.split("\n").filter(Boolean);
+
       let treeData: any = null;
 
       for (const line of lines) {
         try {
           const data = JSON.parse(line);
+
           if (data.type === "tree") {
             treeData = data;
+
             break;
           }
         } catch {}
@@ -112,6 +117,14 @@ export class YarnPackageManager extends BasePackageManager {
     } catch (e) {
       return { name: "root", version: "0.0.0", dependencies: [] };
     }
+  }
+
+  async auditFix(): Promise<ProcessResult> {
+    // Yarn 1 supports audit fix. Yarn 2+ does not directly via 'audit fix' same way.
+
+    // Assuming Yarn 1 for typical lockfile usage or basic support.
+
+    return this.execute("yarn", ["audit", "fix"]);
   }
 
   private convertYarnTree(data: any): DependencyGraph {
