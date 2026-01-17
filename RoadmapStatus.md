@@ -6,7 +6,7 @@
 
 - [x] Auto-detection of Node.js Projects
 - [x] Multi-root Workspace Support
-- [ ] Configurable Project-Specific Settings (Partial - via VS Code settings, not explicit per-project overrides yet)
+- [x] Configurable Project-Specific Settings (Via VS Code Workspace Settings)
 
 ### Interactive Package Operations
 
@@ -66,8 +66,12 @@
 - [ ] AI-Powered Recommendations
 - [ ] Collaborative Features
 - [ ] Performance Optimization (Lazy loading implemented in TreeViews)
+- [ ] Dependency Analytics Dashboard
+- [ ] Auto-fix for Vulnerabilities
 
 ### Community
 
 - [ ] Plugin System
 - [ ] Localization
+- [ ] Custom Registry Authentication Support
+- [ ] Lockfile Explorer

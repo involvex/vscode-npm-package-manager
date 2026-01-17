@@ -16,38 +16,38 @@ Advanced Node.js package management for Visual Studio Code with support for npm,
 
 ### 📦 Interactive Package Operations
 
-- **Install Packages**: Interactive UI with version selection and dependency type (prod/dev) options
-- **Remove Packages**: With dependency tree visualization
-- **Update Packages**: Major/minor/patch filtering with changelog previews
-- **Search Packages**: Real-time registry search with fuzzy matching
-- **Batch Operations**: Update or install multiple packages simultaneously
+- **Install Packages**: Interactive UI with version selection (latest/specific) and dependency type (prod/dev) options.
+- **Remove Packages**: Batch removal support.
+- **Update Packages**: Batch update support with major/minor/patch filtering.
+- **Search Packages**: Real-time registry search with fuzzy matching.
+- **Batch Operations**: Update or install multiple packages simultaneously.
 
 ### 🎯 Dependency Management
 
-- One-click movement between `dependencies` and `devDependencies`
-- Visual dependency graph with peer/optional dependency highlighting
-- Conflict detection and resolution suggestions
+- **Visual Dependency Graph**: Interactive graph visualization of your project's dependencies.
+- **Unused Dependency Detection**: Find and remove unused dependencies by scanning your source code.
+- **Conflict Detection**: Identify conflicting peer dependencies and invalid package states.
+- **License Compliance**: Check installed packages against allowed/blocked license lists.
+- **Move Dependencies**: One-click movement between `dependencies` and `devDependencies`.
+
+### 🚀 Scripts & Automation
+
+- **Scripts Explorer**: dedicated view to list and run `package.json` scripts with one click.
+- **Script Debugging**: Debug scripts directly from the VS Code UI.
+- **Multi-root Support**: Seamlessly switch between active projects in a multi-root workspace via the status bar.
+- **Offline Mode**: Work without internet access using cached metadata.
 
 ### 🚨 Update & Security Monitoring
 
-- Background update checks with configurable frequency
-- Notifications for available updates (grouped by severity: patch/minor/major)
-- Security vulnerability scanning with CVSS scoring
-- Deprecation warnings with migration guides
+- **Background Checks**: Configurable background checks for updates and security vulnerabilities.
+- **Security Audit**: Integrated vulnerability scanning using `npm audit` logic.
+- **Deprecation Warnings**: Visual indicators for deprecated packages.
 
 ### ⚙️ Configuration & Automation
 
-- Auto-detect or manually configure package manager (npm/yarn/pnpm/bun)
-- Customizable update check intervals (0 to disable)
-- Pre-configured scripts with validation
-- CI-friendly mode (disable auto-updates in CI environments)
-
-### 🎨 UX Enhancements
-
-- Command palette integration for quick actions
-- Status bar indicators for pending updates and security alerts
-- Keyboard shortcuts for power users
-- Dark/light theme support with customizable UI colors
+- **Smart Detection**: Automatically detects package manager (`npm`, `yarn`, `pnpm`, `bun`) using `package.json`'s `packageManager` field or lockfiles (including `bun.lock`).
+- **Customizable**: Configure update check intervals, notifications, and more.
+- **Debug Mode**: Enable verbose logging to the VS Code output channel for troubleshooting.
 
 ## Installation
 
@@ -60,22 +60,33 @@ Advanced Node.js package management for Visual Studio Code with support for npm,
 
 ### Dependencies View
 
-The extension adds a "Dependencies" view to the Explorer sidebar (visible when a Node.js project is detected). This view shows:
+The extension adds a "Dependency Manager & Scripts" view container to the Explorer sidebar.
 
-- Project structure
-- Dependencies (categorized by type)
-- Updatable packages (with version indicators)
-- Packages with security issues
+#### Node Package Manager
+Manage your dependencies:
+- View all installed packages grouped by type.
+- Identify updates (green arrow) and vulnerabilities (warning icon).
+- Context menu actions to update, uninstall, move, or view on npmjs.com.
+
+#### Scripts
+View and run scripts defined in your `package.json`:
+- Click the play button to run a script in the integrated terminal.
+- Right-click to debug a script.
 
 ### Command Palette
 
 All operations are available through the Command Palette (`Ctrl+Shift+P`):
 
 - `NPM: Refresh Dependencies` - Reload project dependencies
-- `NPM: Install Package` - Install a new package
-- `NPM: Uninstall Package` - Remove a package
-- `NPM: Update Package` - Update a specific package
+- `NPM: Install Package` - Install a new package (interactive)
+- `NPM: Uninstall Package` - Remove selected package(s)
+- `NPM: Update Package` - Update selected package(s)
 - `NPM: Update All Packages` - Update all packages in a project
+- `NPM: Find Unused Dependencies` - Scan for unused dependencies
+- `NPM: View Dependency Graph` - Open the dependency graph visualization
+- `NPM: Check Conflicts` - Check for dependency conflicts
+- `NPM: Check Licenses` - Validate package licenses against policy
+- `NPM: Select Active Project` - Switch the active project in a multi-root workspace
 - `NPM: Move to Dependencies` - Move package to production dependencies
 - `NPM: Move to Dev Dependencies` - Move package to dev dependencies
 - `NPM: Open on npmjs.com` - View package on npm registry
@@ -94,20 +105,25 @@ All operations are available through the Command Palette (`Ctrl+Shift+P`):
 
 | Setting                                       | Description                                             | Default |
 | --------------------------------------------- | ------------------------------------------------------- | ------- |
-| `npmPackageManager.defaultPackageManager`     | Package manager to use (auto detects based on lockfile) | `auto`  |
+| `npmPackageManager.defaultPackageManager`     | Package manager to use (auto, npm, yarn, pnpm, bun)     | `auto`  |
 | `npmPackageManager.updateCheckInterval`       | Minutes between automatic update checks (0 to disable)  | `60`    |
 | `npmPackageManager.showUpdateNotifications`   | Show notifications when package updates are available   | `true`  |
 | `npmPackageManager.showSecurityNotifications` | Show notifications for security vulnerabilities         | `true`  |
 | `npmPackageManager.showStatusBarItem`         | Show package status in status bar                       | `true`  |
+| `npmPackageManager.offlineMode`               | Enable offline mode (disable network requests)          | `false` |
+| `npmPackageManager.debug`                     | Enable debug logging to Output channel                  | `false` |
+| `npmPackageManager.allowedLicenses`           | List of allowed SPDX license identifiers                | `[]`    |
+| `npmPackageManager.blockedLicenses`           | List of blocked SPDX license identifiers                | `[]`    |
 
 ### Project-specific Settings
 
-Add a `npmPackageManager` section to your workspace or folder settings:
+You can configure these settings in your `.vscode/settings.json` file.
 
 ```json
 {
-  "npmPackageManager.defaultPackageManager": "yarn",
-  "npmPackageManager.updateCheckInterval": 30
+  "npmPackageManager.defaultPackageManager": "bun",
+  "npmPackageManager.allowedLicenses": ["MIT", "Apache-2.0"],
+  "npmPackageManager.blockedLicenses": ["GPL-3.0"]
 }
 ```
 
