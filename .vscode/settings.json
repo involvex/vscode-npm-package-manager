@@ -14,5 +14,71 @@
     "out": true,
     "dist": true
   },
-  "typescript.tsc.autoDetect": "off"
+  "typescript.tsc.autoDetect": "off",
+  "statusbarQuickActions.buttons": [
+    {
+      "id": "package",
+      "text": "🔨 Package",
+      "tooltip": "Run package command",
+      "command": {
+        "type": "bun",
+        "script": "package"
+      },
+      "enabled": true,
+      "alignment": "left",
+      "priority": 100
+    },
+    {
+      "id": "check",
+      "text": "👄 Check",
+      "command": {
+        "type": "bun",
+        "script": "check",
+      },
+      "alignment": "left",
+      "enabled": true,
+      "priority": 100,
+      "colors": {
+        "background": "blue",
+        "foreground": "black"
+      },
+      "tooltip": "run check",
+      "execution": {
+        "showProgress": true,
+        "notifications": {
+          "showError": true
+        }
+      }
+    },
+    {
+      "id": "changelog",
+      "text": "💬 Changelog",
+      "command": {
+        "type": "bun",
+        "script": "changelog"
+      },
+      "alignment": "left",
+      "enabled": true,
+      "priority": 100,
+      "colors": {
+        "background": "blue",
+        "foreground": "black"
+      },
+      "tooltip": "run changelog",
+      "execution": {
+        "showProgress": true,
+        "notifications": {
+          "showError": true,
+          "showOutput": true,
+          "showSuccess": true
+        }
+      }
+    }
+  ],
+  "statusbarQuickActions.settings.icons": {
+    "library": "vscode"
+  },
+  "statusbarQuickActions.settings.theme": {
+    "darkTheme": true
+  }
 }

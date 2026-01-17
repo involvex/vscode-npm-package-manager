@@ -44,7 +44,7 @@
     "pretest": "bun run compile-tests && bun run compile && bun run lint",
     "test": "vscode-test",
     "typecheck": "tsc --noEmit",
-    "vscode:prepublish": "bun run check && bun run compile",
+    "vscode:prepublish": "bun run check && bun run compile && bun run changelog",
     "watch": "npm-run-all -p watch:*",
     "watch-tests": "tsc -p . -w --outDir out",
     "watch:esbuild": "bun run esbuild.js --watch",
