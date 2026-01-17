@@ -20,6 +20,12 @@ export class PackageItem extends vscode.TreeItem {
     md.appendMarkdown(`Version: ${this.pkg.currentVersion}\n\n`);
     md.appendMarkdown(`Type: ${this.pkg.dependencyType}\n\n`);
 
+    if (this.pkg.isDeprecated) {
+      md.appendMarkdown(
+        `\n\n**DEPRECATED:** ${this.pkg.deprecationMessage || "This package is deprecated"}\n\n`,
+      );
+    }
+
     if (this.pkg.latestVersion && this.pkg.updateAvailable) {
       md.appendMarkdown(`Latest: ${this.pkg.latestVersion}\n\n`);
       md.appendMarkdown(`Update available: ${this.pkg.updateAvailable}\n\n`);
@@ -35,6 +41,13 @@ export class PackageItem extends vscode.TreeItem {
   }
 
   private getIcon(): vscode.ThemeIcon {
+    if (this.pkg.isDeprecated) {
+      return new vscode.ThemeIcon(
+        "archive",
+        new vscode.ThemeColor("charts.orange"),
+      );
+    }
+
     if (this.pkg.vulnerabilities && this.pkg.vulnerabilities.length > 0) {
       return new vscode.ThemeIcon(
         "warning",

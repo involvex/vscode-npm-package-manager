@@ -12,6 +12,7 @@ import type { Project, DependencyType, InstalledPackage } from "./types";
 import { DependencyGraphService } from "./services/dependency/graph";
 import { ProjectDetector, ProjectWatcher } from "./services/project";
 import { DependencyAnalyzer } from "./services/dependency/analyzer";
+import { ConflictDetector } from "./services/dependency/conflicts";
 import { createPackageManager } from "./services/package-manager";
 import { GraphPanel } from "./providers/webview/graph.panel";
 import { SecurityScanner } from "./services/security";
@@ -260,6 +261,64 @@ async function runSecurityAudit(project: Project): Promise<void> {
 }
 
 function registerCommands(context: vscode.ExtensionContext): void {
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.checkConflicts",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Checking for conflicts...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const detector = new ConflictDetector(pm);
+              const conflicts = await detector.detectConflicts();
+
+              if (conflicts.length === 0) {
+                vscode.window.showInformationMessage("No conflicts found.");
+              } else {
+                const message = `Found ${conflicts.length} conflicts.`;
+                const choice = await vscode.window.showWarningMessage(
+                  message,
+                  "View Details",
+                );
+                if (choice === "View Details") {
+                  // Create a markdown report or output channel
+                  const output =
+                    vscode.window.createOutputChannel("NPM Conflicts");
+                  output.clear();
+                  output.appendLine(`Conflicts for ${project.name}:`);
+                  conflicts.forEach(c => {
+                    output.appendLine(
+                      `- ${c.packageName}: ${c.message} (${c.type})`,
+                    );
+                  });
+                  output.show();
+                }
+              }
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                "Failed to check conflicts: " + error.message,
+              );
+            }
+          },
+        );
+      },
+    ),
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand("npm-pm.refresh", async () => {
       await initializeProjects();
@@ -511,11 +570,42 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
         const packageName = await vscode.window.showInputBox({
           prompt: "Enter package name to install",
-          placeHolder: "e.g., lodash, express@4.18.0",
+          placeHolder: "e.g., lodash",
         });
 
         if (!packageName) {
           return;
+        }
+
+        let versionToInstall = packageName;
+
+        // Interactive version selection
+        if (!packageName.includes("@")) {
+          await vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: `Fetching versions for ${packageName}...`,
+            },
+            async () => {
+              const versions = await registryClient.getVersions(packageName);
+              if (versions.length > 0) {
+                const selectedVersion = await vscode.window.showQuickPick(
+                  [
+                    { label: "latest", description: "Install latest version" },
+                    ...versions.slice(0, 20).map(v => ({ label: v })),
+                  ],
+                  { placeHolder: `Select version for ${packageName}` },
+                );
+
+                if (selectedVersion) {
+                  versionToInstall =
+                    selectedVersion.label === "latest"
+                      ? packageName
+                      : `${packageName}@${selectedVersion.label}`;
+                }
+              }
+            },
+          );
         }
 
         const depType = await vscode.window.showQuickPick(
@@ -533,7 +623,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
         await vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: `Installing ${packageName}...`,
+            title: `Installing ${versionToInstall}...`,
             cancellable: false,
           },
           async () => {
@@ -541,7 +631,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
               project.packageManager,
               project.path,
             );
-            const result = await pm.install([packageName], {
+            const result = await pm.install([versionToInstall], {
               dev: depType.label === "devDependencies",
             });
 
@@ -553,74 +643,28 @@ function registerCommands(context: vscode.ExtensionContext): void {
           },
         );
 
-        vscode.window.showInformationMessage(`Installed ${packageName}`);
+        vscode.window.showInformationMessage(`Installed ${versionToInstall}`);
       },
     ),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("npm-pm.search", async () => {
-      const query = await vscode.window.showInputBox({
-        prompt: "Search npm packages",
-        placeHolder: "Enter package name or keywords",
-      });
-
-      if (!query) {
-        return;
-      }
-
-      const results = await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Searching for "${query}"...`,
-          cancellable: false,
-        },
-        async () => {
-          return registryClient.search(query, { limit: 10 });
-        },
-      );
-
-      if (results.length === 0) {
-        vscode.window.showInformationMessage("No packages found");
-        return;
-      }
-
-      const items = results.map(pkg => ({
-        label: pkg.name,
-        description: pkg.version,
-        detail: pkg.description,
-        pkg,
-      }));
-
-      const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a package to install",
-        matchOnDescription: true,
-        matchOnDetail: true,
-      });
-
-      if (selected) {
-        vscode.commands.executeCommand("npm-pm.install", undefined);
-        vscode.env.clipboard.writeText(selected.pkg.name);
-        vscode.window.showInformationMessage(
-          `Package name "${selected.pkg.name}" copied to clipboard. Paste it in the install prompt.`,
-        );
-      }
-    }),
-  );
-
-  context.subscriptions.push(
     vscode.commands.registerCommand(
       "npm-pm.uninstall",
-      async (item?: PackageItem) => {
-        if (!item || !(item instanceof PackageItem)) {
+      async (item?: PackageItem, items?: PackageItem[]) => {
+        const packagesToUninstall =
+          items && items.length > 0 ? items : item ? [item] : [];
+
+        if (packagesToUninstall.length === 0) {
           vscode.window.showErrorMessage(
-            "Please select a package to uninstall",
+            "Please select package(s) to uninstall",
           );
           return;
         }
 
+        const pkgNames = packagesToUninstall.map(p => p.pkg.name).join(", ");
         const confirm = await vscode.window.showWarningMessage(
-          `Uninstall ${item.pkg.name}?`,
+          `Uninstall ${packagesToUninstall.length} package(s): ${pkgNames}?`,
           { modal: true },
           "Uninstall",
         );
@@ -629,28 +673,42 @@ function registerCommands(context: vscode.ExtensionContext): void {
           return;
         }
 
+        // Assume all selected packages belong to the same project (VS Code restriction usually)
+        // If not, we might need to group by project.
+        // For simplicity, we process by project.
+        const packagesByProject = new Map<Project, string[]>();
+        for (const pkgItem of packagesToUninstall) {
+          if (!packagesByProject.has(pkgItem.project)) {
+            packagesByProject.set(pkgItem.project, []);
+          }
+          packagesByProject.get(pkgItem.project)!.push(pkgItem.pkg.name);
+        }
+
         await vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: `Uninstalling ${item.pkg.name}...`,
+            title: "Uninstalling packages...",
             cancellable: false,
           },
           async () => {
-            const pm = createPackageManager(
-              item.project.packageManager,
-              item.project.path,
-            );
-            const result = await pm.uninstall([item.pkg.name]);
+            for (const [project, packages] of packagesByProject) {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const result = await pm.uninstall(packages);
 
-            if (result.exitCode !== 0) {
-              throw new Error(result.stderr || "Uninstallation failed");
+              if (result.exitCode !== 0) {
+                vscode.window.showErrorMessage(
+                  `Failed to uninstall from ${project.name}: ${result.stderr}`,
+                );
+              }
             }
-
             await initializeProjects();
           },
         );
 
-        vscode.window.showInformationMessage(`Uninstalled ${item.pkg.name}`);
+        vscode.window.showInformationMessage(`Uninstalled ${pkgNames}`);
       },
     ),
   );
@@ -658,34 +716,50 @@ function registerCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "npm-pm.update",
-      async (item?: PackageItem) => {
-        if (!item || !(item instanceof PackageItem)) {
-          vscode.window.showErrorMessage("Please select a package to update");
+      async (item?: PackageItem, items?: PackageItem[]) => {
+        const packagesToUpdate =
+          items && items.length > 0 ? items : item ? [item] : [];
+
+        if (packagesToUpdate.length === 0) {
+          vscode.window.showErrorMessage("Please select package(s) to update");
           return;
+        }
+
+        const pkgNames = packagesToUpdate.map(p => p.pkg.name).join(", ");
+
+        const packagesByProject = new Map<Project, string[]>();
+        for (const pkgItem of packagesToUpdate) {
+          if (!packagesByProject.has(pkgItem.project)) {
+            packagesByProject.set(pkgItem.project, []);
+          }
+          packagesByProject.get(pkgItem.project)!.push(pkgItem.pkg.name);
         }
 
         await vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: `Updating ${item.pkg.name}...`,
+            title: "Updating packages...",
             cancellable: false,
           },
           async () => {
-            const pm = createPackageManager(
-              item.project.packageManager,
-              item.project.path,
-            );
-            const result = await pm.update([item.pkg.name]);
+            for (const [project, packages] of packagesByProject) {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const result = await pm.update(packages);
 
-            if (result.exitCode !== 0) {
-              throw new Error(result.stderr || "Update failed");
+              if (result.exitCode !== 0) {
+                vscode.window.showErrorMessage(
+                  `Failed to update packages in ${project.name}: ${result.stderr}`,
+                );
+              }
             }
-
             await initializeProjects();
           },
         );
 
-        vscode.window.showInformationMessage(`Updated ${item.pkg.name}`);
+        vscode.window.showInformationMessage(`Updated ${pkgNames}`);
       },
     ),
   );

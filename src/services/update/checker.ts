@@ -11,9 +11,13 @@ export class UpdateChecker {
     const results = await Promise.all(
       packages.map(async pkg => {
         try {
-          const latestVersion = await this.registryClient.getLatestVersion(
-            pkg.name,
-          );
+          const registryPkg = await this.registryClient.getPackage(pkg.name);
+
+          if (!registryPkg) {
+            return pkg;
+          }
+
+          const latestVersion = registryPkg["dist-tags"]?.latest;
 
           if (!latestVersion) {
             return pkg;
@@ -21,10 +25,22 @@ export class UpdateChecker {
 
           const updateType = getUpdateType(pkg.currentVersion, latestVersion);
 
+          // Check if the current version is deprecated
+          const currentVersionInfo = registryPkg.versions[pkg.currentVersion];
+          const latestVersionInfo = registryPkg.versions[latestVersion];
+
+          const isDeprecated = !!(
+            currentVersionInfo?.deprecated || latestVersionInfo?.deprecated
+          );
+          const deprecationMessage = (currentVersionInfo?.deprecated ||
+            latestVersionInfo?.deprecated) as string | undefined;
+
           return {
             ...pkg,
             latestVersion,
             updateAvailable: updateType,
+            isDeprecated,
+            deprecationMessage,
           };
         } catch {
           return pkg;
