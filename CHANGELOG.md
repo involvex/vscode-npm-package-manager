@@ -1,3 +1,17 @@
+## [0.0.10](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.9...v0.0.10) (2026-01-17)
+
+
+### Features
+
+* add active project selection and script debugging ([1d7150b](https://github.com/involvex/vscode-npm-package-manager/commit/1d7150bff4c0c171d0c6c56e0768da7a276b363c))
+
+
+### BREAKING CHANGES
+
+* Views now default to showing only the active project instead of all projects when multiple are present
+
+
+
 ## [0.0.9](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.8...v0.0.9) (2026-01-17)
 
 
