@@ -1,4 +1,9 @@
-import type { InstallOptions, DependencyType } from "../../types";
+import type {
+  InstallOptions,
+  DependencyType,
+  DependencyGraph,
+  DependencyNode,
+} from "../../types";
 import { BasePackageManager, type OutdatedPackage } from "./base";
 import type { ProcessResult } from "../../utils/process";
 
@@ -67,5 +72,45 @@ export class NpmPackageManager extends BasePackageManager {
     } catch {
       return [];
     }
+  }
+
+  async getDependencyTree(): Promise<DependencyGraph> {
+    try {
+      // npm ls can fail if there are unmet peer deps, but still outputs JSON
+      const result = await this.execute("npm", ["ls", "--all", "--json"]);
+
+      if (!result.stdout) {
+        return { name: "root", version: "0.0.0", dependencies: [] };
+      }
+
+      const data = JSON.parse(result.stdout);
+      return this.convertNpmTree(data);
+    } catch (e) {
+      return { name: "root", version: "0.0.0", dependencies: [] };
+    }
+  }
+
+  private convertNpmTree(data: any): DependencyGraph {
+    return {
+      name: data.name || "root",
+      version: data.version || "0.0.0",
+      dependencies: data.dependencies
+        ? Object.entries(data.dependencies).map(([name, info]: [string, any]) =>
+            this.convertNpmNode(name, info),
+          )
+        : [],
+    };
+  }
+
+  private convertNpmNode(name: string, info: any): DependencyNode {
+    return {
+      name,
+      version: info.version || "unknown",
+      dependencies: info.dependencies
+        ? Object.entries(info.dependencies).map(([n, i]: [string, any]) =>
+            this.convertNpmNode(n, i),
+          )
+        : [],
+    };
   }
 }

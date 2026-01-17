@@ -49,5 +49,6 @@ Develop a feature-rich VS Code extension for advanced Node.js package management
    - License compliance checks with configurable rules
    - Offline mode with cached registry data
    - Integration with popular tools (e.g., Renovate, Snyk, Dependabot)
+   - Node script detection (with packagemanager) and script running onclick
 
 Ensure the extension is performant, handles edge cases (e.g., corrupted lockfiles), and provides clear error messages with actionable solutions. Include comprehensive documentation and examples for extensibility (e.g., custom package sources).

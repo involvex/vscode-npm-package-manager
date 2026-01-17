@@ -1,4 +1,9 @@
-import type { InstallOptions, DependencyType } from "../../types";
+import type {
+  InstallOptions,
+  DependencyType,
+  DependencyGraph,
+  DependencyNode,
+} from "../../types";
 import { BasePackageManager, type OutdatedPackage } from "./base";
 import type { ProcessResult } from "../../utils/process";
 
@@ -68,5 +73,52 @@ export class PnpmPackageManager extends BasePackageManager {
     } catch {
       return [];
     }
+  }
+
+  async getDependencyTree(): Promise<DependencyGraph> {
+    try {
+      const result = await this.execute("pnpm", [
+        "list",
+        "--depth",
+        "Infinity",
+        "--json",
+      ]);
+
+      if (!result.stdout) {
+        return { name: "root", version: "0.0.0", dependencies: [] };
+      }
+
+      const data = JSON.parse(result.stdout);
+      // pnpm returns array of projects
+      const project = Array.isArray(data) ? data[0] : data;
+
+      return this.convertPnpmTree(project);
+    } catch (e) {
+      return { name: "root", version: "0.0.0", dependencies: [] };
+    }
+  }
+
+  private convertPnpmTree(data: any): DependencyGraph {
+    return {
+      name: data.name || "root",
+      version: data.version || "0.0.0",
+      dependencies: data.dependencies
+        ? Object.entries(data.dependencies).map(([name, info]: [string, any]) =>
+            this.convertPnpmNode(name, info),
+          )
+        : [],
+    };
+  }
+
+  private convertPnpmNode(name: string, info: any): DependencyNode {
+    return {
+      name,
+      version: info.version || "unknown",
+      dependencies: info.dependencies
+        ? Object.entries(info.dependencies).map(([n, i]: [string, any]) =>
+            this.convertPnpmNode(n, i),
+          )
+        : [],
+    };
   }
 }

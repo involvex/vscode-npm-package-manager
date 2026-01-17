@@ -1,4 +1,9 @@
-import type { InstallOptions, DependencyType } from "../../types";
+import type {
+  InstallOptions,
+  DependencyType,
+  DependencyGraph,
+  DependencyNode,
+} from "../../types";
 import { BasePackageManager, type OutdatedPackage } from "./base";
 import type { ProcessResult } from "../../utils/process";
 
@@ -74,5 +79,68 @@ export class YarnPackageManager extends BasePackageManager {
     } catch {
       return [];
     }
+  }
+
+  async getDependencyTree(): Promise<DependencyGraph> {
+    try {
+      const result = await this.execute("yarn", ["list", "--json"]);
+
+      if (!result.stdout) {
+        return { name: "root", version: "0.0.0", dependencies: [] };
+      }
+
+      // Yarn outputs multiple JSON lines. the tree is usually the last one?
+      // Or one of them has type: 'tree'.
+      const lines = result.stdout.split("\n").filter(Boolean);
+      let treeData: any = null;
+
+      for (const line of lines) {
+        try {
+          const data = JSON.parse(line);
+          if (data.type === "tree") {
+            treeData = data;
+            break;
+          }
+        } catch {}
+      }
+
+      if (!treeData) {
+        return { name: "root", version: "0.0.0", dependencies: [] };
+      }
+
+      return this.convertYarnTree(treeData);
+    } catch (e) {
+      return { name: "root", version: "0.0.0", dependencies: [] };
+    }
+  }
+
+  private convertYarnTree(data: any): DependencyGraph {
+    return {
+      name: "root",
+      version: "0.0.0",
+      dependencies:
+        data.data && data.data.trees
+          ? data.data.trees.map((node: any) => this.convertYarnNode(node))
+          : [],
+    };
+  }
+
+  private convertYarnNode(node: any): DependencyNode {
+    // Yarn name is "package@version"
+    const nameParts = node.name.lastIndexOf("@");
+    let name = node.name;
+    let version = "";
+    if (nameParts > 0) {
+      name = node.name.substring(0, nameParts);
+      version = node.name.substring(nameParts + 1);
+    }
+
+    return {
+      name,
+      version,
+      dependencies: node.children
+        ? node.children.map((child: any) => this.convertYarnNode(child))
+        : [],
+    };
   }
 }

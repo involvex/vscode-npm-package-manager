@@ -3,6 +3,7 @@ import type {
   PackageJson,
   InstallOptions,
   DependencyType,
+  DependencyGraph,
 } from "../../types";
 import { executeCommand, type ProcessResult } from "../../utils/process";
 import type { PackageManagerType } from "../../types";
@@ -31,6 +32,7 @@ export abstract class BasePackageManager {
   abstract uninstall(packages: string[]): Promise<ProcessResult>;
   abstract update(packages?: string[]): Promise<ProcessResult>;
   abstract outdated(): Promise<OutdatedPackage[]>;
+  abstract getDependencyTree(): Promise<DependencyGraph>;
 
   async list(): Promise<InstalledPackage[]> {
     const packageJsonPath = path.join(this.projectPath, "package.json");

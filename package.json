@@ -1,7 +1,7 @@
 {
   "name": "vscode-npm-package-manager",
   "displayName": "Node Package Manager",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Advanced Node.js package management with support for npm, yarn, pnpm, and bun",
   "categories": [
     "Other",
@@ -110,6 +110,18 @@
         "category": "NPM"
       },
       {
+        "command": "npm-pm.graph",
+        "title": "View Dependency Graph",
+        "icon": "$(graph)",
+        "category": "NPM"
+      },
+      {
+        "command": "npm-pm.findUnused",
+        "title": "Find Unused Dependencies",
+        "icon": "$(beaker)",
+        "category": "NPM"
+      },
+      {
         "command": "npm-pm.checkUpdates",
         "title": "Check for Updates",
         "icon": "$(sync)",
@@ -179,6 +191,11 @@
           "command": "npm-pm.install",
           "when": "view == npmDependencies",
           "group": "navigation"
+        },
+        {
+          "command": "npm-pm.graph",
+          "when": "view == npmDependencies",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -216,6 +233,11 @@
           "command": "npm-pm.updateAll",
           "when": "view == npmDependencies && viewItem =~ /^(category|project)/",
           "group": "1_actions@1"
+        },
+        {
+          "command": "npm-pm.findUnused",
+          "when": "view == npmDependencies && viewItem =~ /^(category|project)/",
+          "group": "1_actions@2"
         }
       ],
       "commandPalette": [
@@ -262,6 +284,14 @@
         {
           "command": "npm-pm.checkUpdates",
           "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.graph",
+          "when": "npmPackageManager.hasProject"
+        },
+        {
+          "command": "npm-pm.findUnused",
+          "when": "npmPackageManager.hasProject"
         }
       ]
     },
@@ -285,11 +315,11 @@
     "@eslint/js": "^9.39.2",
     "@eslint/json": "^0.14.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "^25.0.9",
     "@types/vscode": "^1.108.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "esbuild": "^0.27.1",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "globals": "^17.0.0",
     "jiti": "^2.6.1",

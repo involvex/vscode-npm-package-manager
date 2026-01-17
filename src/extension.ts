@@ -1,7 +1,10 @@
 import { PackageItem, CategoryItem, ProjectItem } from "./providers/tree/items";
 import type { Project, DependencyType, InstalledPackage } from "./types";
+import { DependencyGraphService } from "./services/dependency/graph";
 import { ProjectDetector, ProjectWatcher } from "./services/project";
+import { DependencyAnalyzer } from "./services/dependency/analyzer";
 import { createPackageManager } from "./services/package-manager";
+import { GraphPanel } from "./providers/webview/graph.panel";
 import { DependenciesTreeProvider } from "./providers/tree";
 import { SecurityScanner } from "./services/security";
 import { RegistryClient } from "./services/registry";
@@ -268,6 +271,101 @@ function registerCommands(context: vscode.ExtensionContext): void {
             `Found ${summary.total} vulnerabilities (${summary.critical} critical, ${summary.high} high)`,
           );
         }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.graph",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Generating dependency graph...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const graphService = new DependencyGraphService(pm);
+              const graph = await graphService.generateGraph();
+              GraphPanel.createOrShow(context.extensionUri, graph);
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                "Failed to generate graph: " + error.message,
+              );
+            }
+          },
+        );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.findUnused",
+      async (item?: ProjectItem | CategoryItem | PackageItem) => {
+        const project = getProjectFromItem(item);
+        if (!project) {
+          vscode.window.showErrorMessage("No project selected");
+          return;
+        }
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Analyzing dependencies...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const pm = createPackageManager(
+                project.packageManager,
+                project.path,
+              );
+              const analyzer = new DependencyAnalyzer(pm, project.path);
+              const unused = await analyzer.findUnusedDependencies();
+
+              if (unused.length === 0) {
+                vscode.window.showInformationMessage(
+                  "No unused dependencies found.",
+                );
+              } else {
+                const result = await vscode.window.showWarningMessage(
+                  `Found ${unused.length} potentially unused dependencies: ${unused.join(", ")}`,
+                  "Uninstall All",
+                  "Dismiss",
+                );
+
+                if (result === "Uninstall All") {
+                  const pm = createPackageManager(
+                    project.packageManager,
+                    project.path,
+                  );
+                  await pm.uninstall(unused);
+                  await initializeProjects();
+                  vscode.window.showInformationMessage(
+                    `Uninstalled ${unused.length} packages.`,
+                  );
+                }
+              }
+            } catch (error: any) {
+              vscode.window.showErrorMessage(
+                "Failed to analyze dependencies: " + error.message,
+              );
+            }
+          },
+        );
       },
     ),
   );
