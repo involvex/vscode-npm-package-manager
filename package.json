@@ -1,6 +1,6 @@
 {
   "name": "vscode-npm-package-manager",
-  "displayName": "Node Package Manager",
+  "displayName": "Dependency Manager & Scripts",
   "version": "0.0.6",
   "description": "Advanced Node.js package management with support for npm, yarn, pnpm, and bun",
   "categories": [
@@ -300,7 +300,7 @@
       "explorer": [
         {
           "id": "npmDependencies",
-          "name": "Node Package manager",
+          "name": "Dependency Manager & Scripts",
           "when": "npmPackageManager.hasProject",
           "icon": "$(package)",
           "contextualTitle": "NPM Dependencies"
