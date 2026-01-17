@@ -299,10 +299,17 @@
       "explorer": [
         {
           "id": "npmDependencies",
-          "name": "Dependencies",
+          "name": "Node Package manager",
           "when": "npmPackageManager.hasProject",
           "icon": "$(package)",
           "contextualTitle": "NPM Dependencies"
+        },
+        {
+          "id": "npmScripts",
+          "name": "Scripts",
+          "when": "npmPackageManager.hasProject",
+          "icon": "$(play-circle)",
+          "contextualTitle": "NPM Scripts"
         }
       ]
     }

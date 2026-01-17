@@ -1,11 +1,19 @@
-import { PackageItem, CategoryItem, ProjectItem } from "./providers/tree/items";
+import {
+  PackageItem,
+  CategoryItem,
+  ProjectItem,
+  ScriptItem,
+} from "./providers/tree/items";
+import {
+  DependenciesTreeProvider,
+  ScriptsTreeProvider,
+} from "./providers/tree";
 import type { Project, DependencyType, InstalledPackage } from "./types";
 import { DependencyGraphService } from "./services/dependency/graph";
 import { ProjectDetector, ProjectWatcher } from "./services/project";
 import { DependencyAnalyzer } from "./services/dependency/analyzer";
 import { createPackageManager } from "./services/package-manager";
 import { GraphPanel } from "./providers/webview/graph.panel";
-import { DependenciesTreeProvider } from "./providers/tree";
 import { SecurityScanner } from "./services/security";
 import { RegistryClient } from "./services/registry";
 import { StatusBarManager } from "./views/statusbar";
@@ -13,6 +21,7 @@ import { UpdateChecker } from "./services/update";
 import * as vscode from "vscode";
 
 let treeProvider: DependenciesTreeProvider;
+let scriptsProvider: ScriptsTreeProvider;
 let projectDetector: ProjectDetector;
 let projectWatcher: ProjectWatcher;
 let registryClient: RegistryClient;
@@ -29,6 +38,7 @@ export async function activate(
   projectDetector = new ProjectDetector();
   projectWatcher = new ProjectWatcher();
   treeProvider = new DependenciesTreeProvider();
+  scriptsProvider = new ScriptsTreeProvider();
   registryClient = new RegistryClient();
   updateChecker = new UpdateChecker(registryClient);
   securityScanner = new SecurityScanner();
@@ -39,7 +49,13 @@ export async function activate(
     showCollapseAll: true,
   });
 
+  const scriptsView = vscode.window.createTreeView("npmScripts", {
+    treeDataProvider: scriptsProvider,
+    showCollapseAll: true,
+  });
+
   context.subscriptions.push(treeView);
+  context.subscriptions.push(scriptsView);
   context.subscriptions.push(projectWatcher);
   context.subscriptions.push(statusBarManager);
 
@@ -50,6 +66,7 @@ export async function activate(
     if (project) {
       await loadProjectPackages(project);
       treeProvider.updateProject(project);
+      scriptsProvider.updateProject(project);
       statusBarManager.update(treeProvider.getAllProjects());
     }
   });
@@ -108,6 +125,7 @@ async function initializeProjects(): Promise<void> {
   }
 
   treeProvider.setProjects(projects);
+  scriptsProvider.setProjects(projects);
   statusBarManager.update(projects);
 
   vscode.commands.executeCommand(
@@ -366,6 +384,26 @@ function registerCommands(context: vscode.ExtensionContext): void {
             }
           },
         );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "npm-pm.runScript",
+      async (item?: ScriptItem) => {
+        if (!item || !(item instanceof ScriptItem)) {
+          vscode.window.showErrorMessage("Please select a script to run");
+          return;
+        }
+
+        const terminal = vscode.window.createTerminal({
+          name: `${item.project.packageManager} run ${item.name}`,
+          cwd: item.project.path,
+        });
+
+        terminal.show();
+        terminal.sendText(`${item.project.packageManager} run ${item.name}`);
       },
     ),
   );
