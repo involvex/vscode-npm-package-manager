@@ -1,3 +1,12 @@
+## [0.0.13](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.12...v0.0.13) (2026-01-17)
+
+
+### Features
+
+* **config:** add bun package manager support and debug logging ([634607e](https://github.com/involvex/vscode-npm-package-manager/commit/634607e6f822fc1fb18e79324c1857da66fee5c3))
+
+
+
 ## [0.0.12](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.11...v0.0.12) (2026-01-17)
 
 
