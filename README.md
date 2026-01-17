@@ -1,5 +1,9 @@
 # NPM Package Manager - VSCode Extension
 
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/involvex.vscode-npm-package-manager)](https://marketplace.visualstudio.com/items?itemName=involvex.vscode-npm-package-manager)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/involvex.vscode-npm-package-manager)](https://marketplace.visualstudio.com/items?itemName=involvex.vscode-npm-package-manager)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/involvex/vscode-npm-package-manager)](https://open-vsx.org/extension/involvex/vscode-npm-package-manager)
+
 Advanced Node.js package management for Visual Studio Code with support for npm, yarn, pnpm, and bun.
 
 ## Features
