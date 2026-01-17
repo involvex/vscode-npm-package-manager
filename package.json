@@ -31,6 +31,7 @@
   "publisher": "involvex",
   "main": "./dist/extension.js",
   "scripts": {
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "check": "bun run format && bun run lint:fix && bun run typecheck",
     "clean": "rimraf dist .cache out dist",
     "compile": " node esbuild.js",
@@ -305,7 +306,7 @@
           "contextualTitle": "NPM Dependencies"
         },
         {
-          "id": "npmScripts",
+          "id": "nodePackageScripts",
           "name": "Scripts",
           "when": "npmPackageManager.hasProject",
           "icon": "$(play-circle)",
@@ -326,6 +327,7 @@
     "@types/vscode": "^1.108.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "conventional-changelog-cli": "^5.0.0",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "globals": "^17.0.0",

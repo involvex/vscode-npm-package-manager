@@ -49,7 +49,7 @@ export async function activate(
     showCollapseAll: true,
   });
 
-  const scriptsView = vscode.window.createTreeView("npmScripts", {
+  const scriptsView = vscode.window.createTreeView("nodePackageScripts", {
     treeDataProvider: scriptsProvider,
     showCollapseAll: true,
   });
