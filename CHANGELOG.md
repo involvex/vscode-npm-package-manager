@@ -1,3 +1,7 @@
+## [0.0.9](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.8...v0.0.9) (2026-01-17)
+
+
+
 ## [0.0.8](https://github.com/involvex/vscode-npm-package-manager/compare/v0.0.7...v0.0.8) (2026-01-17)
 
 
